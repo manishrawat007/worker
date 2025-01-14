@@ -2,12 +2,12 @@ const express = require("express")
 
 const app = express()
 
-app.use("/test", (req, res) => {
-    res.send("We are on test page")
+app.get("/", (req, res) => {
+    res.send("We are on index page")
 })
 
-app.use('/', (req, res) => {
-    res.send("Home Page")
+app.post('/', (req, res) => {
+    res.send("Data saved Succesfully")
 })
 
 app.listen(7777,()=>{
