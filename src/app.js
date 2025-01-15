@@ -1,26 +1,24 @@
 const express = require("express")
-const {auth}=require('../middleware/adminAuth')
+const connectDB = require('./config/database')
+const User = require('./models/users')
 
 const app = express()
+app.use(express.json())
 
-app.use('/admin',auth)
-
-app.get('/admin',(req,res)=>{
-    res.send("Admin is Authorised")
+app.post('/signup', async (req, res) => {
+    try {
+        const user = new User(req.body)
+        const newUser = await user.save()
+        res.send(newUser)
+    } catch (err) {
+        res.status(400).send('Some Problem in saving the User')
+    }
 })
 
-app.post('/admin',(req,res)=>{
-    res.send('Admin Details are saved')
-})
-
-app.put('/admin',(req,res)=>{
-    res.send("Admin Details are updated")
-})
-
-app.delete('/admin',(req,res)=>{
-    res.send('admin is deleted')
-})
-
-app.listen(7777,()=>{
-    console.log("server is running")
+connectDB().then(() => {
+    app.listen(7777, () => {
+        console.log("server is running")
+    })
+}).catch((err) => {
+    console.log("error-------", err.message)
 })
