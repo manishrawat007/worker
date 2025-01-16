@@ -12,7 +12,7 @@ app.post('/signup', async (req, res) => {
         const newUser = await user.save()
         res.send(newUser)
     } catch (err) {
-        res.status(400).send('Some Problem in saving the User')
+        res.status(400).send('Some Problem in saving the User' + err.message)
     }
 })
 
@@ -22,7 +22,7 @@ app.get('/users',async(req,res)=>{
    const users= await User.find({})
    res.send(users)
    }catch(err){
-    res.status(400).send("users not found--------",err.message)
+    res.status(400).send("users not found--------" + err.message)
    }
 })
 
@@ -36,7 +36,7 @@ app.post('/userbyemail',async(req,res)=>{
     }
     res.send(user)
     }catch(err){
-        res.status(400).send("something went wrong--------",err.message)
+        res.status(400).send("something went wrong--------" + err.message)
     }
 })
 
@@ -45,10 +45,13 @@ app.patch("/update/:id",async(req,res)=>{
     const id= req.params.id
     const data = req.body
     try{
-        const user = await User.findByIdAndUpdate(id,data)
+        const user = await User.findByIdAndUpdate(id,data,{
+            runValidators: true,
+            returnDocument: 'after'
+        })
         res.send(user)
     }catch(err){
-        res.status(400).send("something went wrong--------",err.message)
+        res.status(400).send("something went wrong--------" + err.message)
     }
 })
 
@@ -59,7 +62,7 @@ app.delete('/user/:id',async(req,res)=>{
         await User.findByIdAndDelete(id)
         res.send("User Details Deleted Successfully")
     }catch(err){
-        res.status(500).send("something went wrong--------",err.message)
+        res.status(500).send("something went wrong--------"+ err.message)
     }
 })
 
