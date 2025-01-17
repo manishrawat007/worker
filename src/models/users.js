@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+const jwt = require('jsonwebtoken')
 
 const userSchema = new mongoose.Schema({
     firstName: {
@@ -28,12 +29,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         minlength:8,
-        // validate:(value)=>{
-        //     const passwordRegex = /^(?=(.*[A-Z]){1,})(?=(.*[a-z]){1,})(?=(.*\d){1,})(?=(.*[@$!%*?&#]){1,})[A-Za-z\d@$!%*?&#]{8,}$/
-        //     if(!passwordRegex.test(value)){
-        //         throw new Error("Password must have at least one capital letter, one lowercase letter ,one special character,one digit, characters in length"); 
-        //     }
-        // }
     },
     age: {
         type: Number,
@@ -62,6 +57,11 @@ const userSchema = new mongoose.Schema({
         default: ["Tractor Chalana", "Khet mai paani dena", "Bhaise Charana"]
     }
 })
+
+userSchema.methods.getToken=async function(){
+    const token = await jwt.sign({ _id: this._id }, 'Worker')
+    return token
+}
 
 const User = mongoose.model('Users', userSchema)
 

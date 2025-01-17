@@ -4,6 +4,7 @@ const User = require('./models/users')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
+const { auth } = require('./middleware/adminAuth')
 
 const app = express()
 app.use(express.json())
@@ -14,12 +15,15 @@ app.post('/login', async (req, res) => {
     const { email, password } = req.body
     try {
         const user = await User.findOne({ email: email })
-        const ispassword= await bcrypt.compare(password, user.password)
-        if (!user || !ispassword) {
+        if (!user) {
+            throw new Error("User is not found");
+        }
+        const ispassword = await bcrypt.compare(password, user.password)
+        if (!ispassword) {
             throw new Error("Invalid Credentials");
         }
-        const token = await jwt.sign({_id:user._id}, 'Worker');
-        res.cookie("token",token)
+        const token = user.getToken()
+        res.cookie("token", token)
         res.send("Login Successfully")
     } catch (err) {
         res.status(400).send(err.message)
@@ -29,9 +33,9 @@ app.post('/login', async (req, res) => {
 //create user api
 app.post('/signup', async (req, res) => {
     try {
-        const {firstName,lastName,email,password,age,gender,profile,bio,skills} = req.body
-        const passwordHash =await bcrypt.hash(password, 10)
-        const user = new User({firstName,lastName,email,password:passwordHash,age,gender,profile,bio,skills})
+        const { firstName, lastName, email, password, age, gender, profile, bio, skills } = req.body
+        const passwordHash = await bcrypt.hash(password, 10)
+        const user = new User({ firstName, lastName, email, password: passwordHash, age, gender, profile, bio, skills })
         const newUser = await user.save()
         res.send(newUser)
     } catch (err) {
@@ -40,7 +44,7 @@ app.post('/signup', async (req, res) => {
 })
 
 // get all user api
-app.get('/users', async (req, res) => {
+app.get('/users', auth, async (req, res) => {
     try {
         const users = await User.find({})
         res.send(users)
@@ -50,7 +54,7 @@ app.get('/users', async (req, res) => {
 })
 
 // get User by email
-app.post('/userbyemail', async (req, res) => {
+app.post('/userbyemail',auth, async (req, res) => {
     const email = req.body.email
     try {
         const user = await User.find({ email: email })
@@ -64,7 +68,7 @@ app.post('/userbyemail', async (req, res) => {
 })
 
 //Update a user by id
-app.patch("/update/:id", async (req, res) => {
+app.patch("/update/:id",auth, async (req, res) => {
     const id = req.params.id
     const data = req.body
     try {
@@ -79,7 +83,7 @@ app.patch("/update/:id", async (req, res) => {
 })
 
 //Delete a user accout
-app.delete('/user/:id', async (req, res) => {
+app.delete('/user/:id',auth, async (req, res) => {
     const id = req.params.id
     try {
         await User.findByIdAndDelete(id)
