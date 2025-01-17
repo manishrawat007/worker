@@ -28,13 +28,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         minlength:8,
-        validate:(value)=>{
-            const passwordRegex = /^(?=(.*[A-Z]){1,})(?=(.*[a-z]){1,})(?=(.*\d){1,})(?=(.*[@$!%*?&#]){1,})[A-Za-z\d@$!%*?&#]{8,}$/
-            if(!passwordRegex.test(value)){
-                throw new Error("Password must have at least one capital letter, one lowercase letter ,one special character,one digit, characters in length"); 
-            }
-        },
-        default: "Password@123"
+        // validate:(value)=>{
+        //     const passwordRegex = /^(?=(.*[A-Z]){1,})(?=(.*[a-z]){1,})(?=(.*\d){1,})(?=(.*[@$!%*?&#]){1,})[A-Za-z\d@$!%*?&#]{8,}$/
+        //     if(!passwordRegex.test(value)){
+        //         throw new Error("Password must have at least one capital letter, one lowercase letter ,one special character,one digit, characters in length"); 
+        //     }
+        // }
     },
     age: {
         type: Number,
