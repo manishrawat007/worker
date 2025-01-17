@@ -2,9 +2,12 @@ const express = require("express")
 const connectDB = require('./config/database')
 const User = require('./models/users')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser')
 
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
 
 //login api
 app.post('/login', async (req, res) => {
@@ -15,6 +18,8 @@ app.post('/login', async (req, res) => {
         if (!user || !ispassword) {
             throw new Error("Invalid Credentials");
         }
+        const token = await jwt.sign({_id:user._id}, 'Worker');
+        res.cookie("token",token)
         res.send("Login Successfully")
     } catch (err) {
         res.status(400).send(err.message)
