@@ -4,7 +4,8 @@ const User = require('../models/users')
 
 const auth = async(req, res, next) => {
     try {
-        const { token } = req.cookies
+        const token = req.headers['token']
+        console.log('token-------',token)
         if (!token) {
             throw new Error("Invalid token");
         }
