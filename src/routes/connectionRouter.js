@@ -61,7 +61,7 @@ connectionRouter.patch('/user/connection/interested/:status/:fromuserId',auth,as
     userRequests.status= status
 
     const request = await userRequests.save()
-    res.send("user update successfully"+request)
+    res.json({"user":request})
     }catch(err){
         res.status(400).send('something went wrong' + err.message)
     }

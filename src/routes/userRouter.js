@@ -10,9 +10,9 @@ userRouter.get('/users', auth, async (req, res) => {
     try {
         //remove the self user from feed
         // remove the users who send request to login user or login user send request to other
-        const limit=req.query.limit || 20
-        const page=req.query.page ||1
-        const skip=(page-1)*limit
+        const limit = req.query.limit || 20
+        const page = req.query.page || 1
+        const skip = (page - 1) * limit
 
         const connection = await ConnectionRequest.find({})
         let ids = []
@@ -84,5 +84,4 @@ userRouter.post('/profile/changepassword', auth, async (req, res) => {
         res.status(400).send(err.message)
     }
 })
-
 module.exports = userRouter
