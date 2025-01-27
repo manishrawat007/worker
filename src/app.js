@@ -5,6 +5,7 @@ const authRouter = require('./routes/authRouter')
 const userRouter = require('./routes/userRouter')
 const connectionRouter = require("./routes/connectionRouter")
 const cors = require('cors');
+const postRouter = require("./routes/postRouter")
 
 const app = express()
 app.use(cors({
@@ -18,6 +19,8 @@ app.use(cookieParser())
 app.use('/',authRouter)
 app.use('/',userRouter)
 app.use('/',connectionRouter)
+app.use('/',postRouter)
+app.use('/uploads',express.static("uploads"))
 
 connectDB().then(() => {
     app.listen(7777, () => {

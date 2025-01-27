@@ -36,19 +36,6 @@ userRouter.get('/users', auth, async (req, res) => {
     }
 })
 
-// get user details
-userRouter.get('/profile', auth, async (req, res) => {
-    const { _id } = req.user
-    try {
-        const user = await User.findById(_id)
-        res.send(user)
-    }
-    catch (err) {
-        res.status(404).send('User not found' + err.message)
-    }
-
-})
-
 //Update a user by id
 userRouter.patch("/profile/update", auth, async (req, res) => {
     const { firstName, lastName, password, email, age, gender, profile, bio, skills } = req.body
