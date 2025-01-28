@@ -1,10 +1,10 @@
-const mongoose= require("mongoose")
+const mongoose = require("mongoose")
 
-const connectDB= async()=>{
-    try{
-        await mongoose.connect('mongodb://127.0.0.1:27017/worker')
-    }catch(err){
-console.log("err----in----connecting----",err.message)
+const connectDB = async () => {
+    try {
+        await mongoose.connect('mongodb+srv://manish:Manish@cluster0.wlb2z.mongodb.net/worker')
+    } catch (err) {
+        console.log("err----in----connecting----", err.message)
     }
 }
 

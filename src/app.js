@@ -6,6 +6,8 @@ const userRouter = require('./routes/userRouter')
 const connectionRouter = require("./routes/connectionRouter")
 const cors = require('cors');
 const postRouter = require("./routes/postRouter")
+const dotenv = require('dotenv')
+dotenv.config("")
 
 const app = express()
 app.use(cors({
