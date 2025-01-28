@@ -6,6 +6,7 @@ const path = require('path');
 const postRouter = express.Router()
 const mongoose = require('mongoose')
 
+// upload a image
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/');
@@ -62,10 +63,11 @@ postRouter.post('/post/upload', upload.single('image'), auth, async (req, res) =
     }
 })
 
+// get user profile
 postRouter.get('/profile', auth, async (req, res) => {
     const _id = req.user
     try {
-        const posts = await Photos.findOne({ userId: _id}).populate('userId', ['firstName', 'lastName', 'profile', 'gender', 'age', 'skills'])
+        const posts = await Photos.findOne({ userId: _id }).populate('userId', ['firstName', 'lastName', 'profile', 'gender', 'age', 'skills'])
         if (!posts) {
             throw new Error("No posts found");
         }
@@ -75,12 +77,13 @@ postRouter.get('/profile', auth, async (req, res) => {
     }
 })
 
+//delete a post by post id
 postRouter.delete('/post/delete/:id', auth, async (req, res) => {
     const { id } = req.params
     try {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: 'Invalid ID format' });
-        }    
+        }
         const posts = await Photos.findOne({ userId: req.user._id })
         const remainingImages = posts.profile.filter((image) => image.id != id)
         posts.profile = remainingImages
@@ -89,6 +92,31 @@ postRouter.delete('/post/delete/:id', auth, async (req, res) => {
     } catch (err) {
         res.status(400).send("User is not deleted " + err.message)
     }
+})
+
+// get archieve posts
+postRouter.get('/posts/archieve', auth, async (req, res) => {
+    try {
+        const posts = await Photos.findOne({ userId: req.user._id })
+        const archievePosts = posts.profile.filter((images) => images.isArchieve == true)
+        res.json({ posts: archievePosts })
+    } catch (err) {
+        res.status(404).json({ message: "No posts found", error: err.message })
+    }
+})
+
+//archieve or not archive a post
+postRouter.patch('/posts/is/archieve/:id',auth,async(req,res)=>{
+   const {id} = req.params
+   const {archieve} = req.body
+
+   const posts = await Photos.findOne({userId:req.user._id})
+   const updatedPost = posts.profile.find((image)=>image.id== id)
+   updatedPost.isArchieve = archieve
+   const index = posts.profile.findIndex(item => item.id === id);
+   posts.profile.splice(index,1,updatedPost)
+   await posts.save()
+   res.json({posts})
 })
 
 module.exports = postRouter
