@@ -1,10 +1,11 @@
 const express = require('express')
 const { auth } = require('../middleware/adminAuth');
-const Photos = require('../models/photos');
+const Posts = require('../models/posts');
 const multer = require('multer');
 const path = require('path');
 const postRouter = express.Router()
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const User = require('../models/users');
 
 // upload a image
 const storage = multer.diskStorage({
@@ -23,16 +24,17 @@ postRouter.post('/post/upload', upload.single('image'), auth, async (req, res) =
     if (!req.file) {
         return res.status(400).send('No file uploaded');
     }
+    const { message } = req.body
     const imageUrl = req.file
         ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
         : undefined;
     try {
-        const userPosts = await Photos.findOne({ userId: req.user._id })
+        const userPosts = await Posts.findOne({ userId: req.user._id })
         if (userPosts) {
             userPosts.profile.push({
-                id: new mongoose.Types.ObjectId(),
                 url: imageUrl,
                 isArchieve: false,
+                message: message
             });
             const updatedPhotos = await userPosts.save();
             return res.status(200).json({
@@ -40,13 +42,14 @@ postRouter.post('/post/upload', upload.single('image'), auth, async (req, res) =
                 data: updatedPhotos,
             });
         } else {
-            const newPhoto = new Photos({
+            const newPhoto = new Posts({
                 userId: req.user._id,
                 profile: [
                     {
                         id: new mongoose.Types.ObjectId(),
                         url: imageUrl,
                         isArchieve: false,
+                        message: message
                     },
                 ],
             });
@@ -64,16 +67,20 @@ postRouter.post('/post/upload', upload.single('image'), auth, async (req, res) =
 })
 
 // get user profile
-postRouter.get('/profile', auth, async (req, res) => {
-    const _id = req.user
+postRouter.get('/posts/:id', auth, async (req, res) => {
+    const { id } = req.params
     try {
-        const posts = await Photos.findOne({ userId: _id }).populate('userId', ['firstName', 'lastName', 'profile', 'gender', 'age', 'skills'])
-        if (!posts) {
-            throw new Error("No posts found");
+        const posts = await Posts.findOne({ userId: id }).populate('userId', ['firstName', 'lastName', 'profile', 'gender', 'age', 'skills'])
+        if (!posts || !posts.profile) {
+            const user = await User.findOne({_id:id})
+            const { firstName, lastName, email, age, gender, profile, bio, skills } = user
+            return res.json({ user: { firstName, lastName, email, age, gender, profile, bio, skills }, profile: [] })
         }
-        res.send(posts)
+        const filterposts =posts.profile.filter((post) => post.isArchieve==false)
+
+        res.json({ user: posts.userId, profile: filterposts })
     } catch (err) {
-        res.status(400).send("Can not find posts" + err.message)
+        res.status(400).send("Can not find posts " + err.message)
     }
 })
 
@@ -84,7 +91,7 @@ postRouter.delete('/post/delete/:id', auth, async (req, res) => {
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: 'Invalid ID format' });
         }
-        const posts = await Photos.findOne({ userId: req.user._id })
+        const posts = await Posts.findOne({ userId: req.user._id })
         const remainingImages = posts.profile.filter((image) => image.id != id)
         posts.profile = remainingImages
         await posts.save()
@@ -97,7 +104,10 @@ postRouter.delete('/post/delete/:id', auth, async (req, res) => {
 // get archieve posts
 postRouter.get('/posts/archieve', auth, async (req, res) => {
     try {
-        const posts = await Photos.findOne({ userId: req.user._id })
+        const posts = await Posts.findOne({ userId: req.user._id })
+        if(!posts){
+            throw new Error("No posts is found by the given Id"); 
+        }
         const archievePosts = posts.profile.filter((images) => images.isArchieve == true)
         res.json({ posts: archievePosts })
     } catch (err) {
@@ -106,17 +116,28 @@ postRouter.get('/posts/archieve', auth, async (req, res) => {
 })
 
 //archieve or not archive a post
-postRouter.patch('/posts/is/archieve/:id',auth,async(req,res)=>{
-   const {id} = req.params
-   const {archieve} = req.body
+postRouter.patch('/posts/is/archieve/:id', auth, async (req, res) => {
+    const { id } = req.params
+    const { archieve } = req.body
 
-   const posts = await Photos.findOne({userId:req.user._id})
-   const updatedPost = posts.profile.find((image)=>image.id== id)
-   updatedPost.isArchieve = archieve
-   const index = posts.profile.findIndex(item => item.id === id);
-   posts.profile.splice(index,1,updatedPost)
-   await posts.save()
-   res.json({posts})
+    try {
+        if (!id && !archieve) {
+            throw new Error("Payload is incorrect");
+        }
+        const posts = await Posts.findOne({ userId: req.user._id })
+        if(!posts){
+            throw new Error("No posts is found by the given Id");
+            
+        }
+        const updatedPost = posts.profile.find((image) => image.id == id)
+        updatedPost.isArchieve = archieve
+        const index = posts.profile.findIndex(item => item.id === id);
+        posts.profile.splice(index, 1, updatedPost)
+        await posts.save()
+        res.json({ posts })
+    } catch (err) {
+        res.status(404).json({ message: err.message })
+    }
 })
 
 module.exports = postRouter

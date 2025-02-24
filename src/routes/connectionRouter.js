@@ -103,7 +103,9 @@ connectionRouter.get('/user/followers', auth, async (req, res) => {
             }
             return user.fromUserId
         })
-        res.json({ data: userData })
+
+        const filterUserData=userData.filter((user)=>user!=null)
+        res.json({ data: filterUserData })
     } catch (err) {
         res.status(400).send(err.message)
     }

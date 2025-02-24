@@ -31,13 +31,14 @@ authRouter.post('/login', async (req, res) => {
 //Sign Up api
 authRouter.post('/signup', async (req, res) => {
     try {
+        console.log("user------",req.body)
         const { firstName, lastName, email, password, age, gender, profile, bio, skills } = req.body
         const passwordHash = await bcrypt.hash(password, 10)
         const user = new User({ firstName, lastName, email, password: passwordHash, age, gender, profile, bio, skills })
         const newUser = await user.save()
-        res.send(newUser)
+        res.status(201).json(newUser)
     } catch (err) {
-        res.status(400).send('Some Problem in saving the User' + err.message)
+        res.status(400).send(err.message)
     }
 })
 

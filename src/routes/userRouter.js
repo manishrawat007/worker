@@ -36,6 +36,15 @@ userRouter.get('/users', auth, async (req, res) => {
     }
 })
 
+//userDetails
+userRouter.get('/profile', auth, async (req, res) => {
+    try {
+        res.send(req.user)
+    } catch (err) {
+        res.status(400).send("Can not find posts" + err.message)
+    }
+})
+
 //Update a user by id
 userRouter.patch("/profile/update", auth, async (req, res) => {
     const { firstName, lastName, password, email, age, gender, profile, bio, skills } = req.body
@@ -48,7 +57,10 @@ userRouter.patch("/profile/update", auth, async (req, res) => {
             runValidators: true,
             returnDocument: 'after'
         })
-        res.send(user)
+        const userObject = user.toObject()
+        delete userObject.email
+        delete userObject.password
+        res.send(userObject)
     } catch (err) {
         res.status(400).send(err.message)
     }
