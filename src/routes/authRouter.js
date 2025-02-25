@@ -2,6 +2,8 @@ const express = require('express')
 const User = require('../models/users')
 const bcrypt=require('bcrypt')
 const {auth} = require('../middleware/adminAuth')
+const multer = require('multer');
+const path = require('path');
 
 const authRouter = express.Router()
 
@@ -29,12 +31,33 @@ authRouter.post('/login', async (req, res) => {
 })
 
 //Sign Up api
-authRouter.post('/signup', async (req, res) => {
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    },
+});
+
+const upload = multer({
+    storage: storage,
+}).fields([
+    { name: "profilePic", maxCount: 1 },
+    { name: "coverPic", maxCount: 1 }
+]);
+
+authRouter.post('/signup',upload ,async (req, res) => {
     try {
-        console.log("user------",req.body)
-        const { firstName, lastName, email, password, age, gender, profile, bio, skills } = req.body
+        const { firstName, lastName, email, password, age, gender, bio, skills } = req.body
+        const profileurl = req.files["profilePic"] ? `${req.protocol}://${req.get('host')}/uploads/${req.files["profilePic"][0].filename}` : null;
+        const coverurl = req.files["coverPic"] ? `${req.protocol}://${req.get('host')}/uploads/${req.files["coverPic"][0].filename}` : null;
+        if(!profileurl && !coverurl && !email && !password && !firstName){
+            throw new Error("All fields are required"); 
+        }
         const passwordHash = await bcrypt.hash(password, 10)
-        const user = new User({ firstName, lastName, email, password: passwordHash, age, gender, profile, bio, skills })
+        const user = new User({ firstName, lastName, email, password: passwordHash, age, gender, profile:profileurl,cover:coverurl, bio, skills })
         const newUser = await user.save()
         res.status(201).json(newUser)
     } catch (err) {
