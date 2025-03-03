@@ -7,6 +7,7 @@ const connectionRouter = require("./routes/connectionRouter")
 const cors = require('cors');
 const postRouter = require("./routes/postRouter")
 const dotenv = require('dotenv')
+const chatRouter = require("./routes/chatRouter")
 dotenv.config("")
 
 const app = express()
@@ -22,6 +23,7 @@ app.use('/',authRouter)
 app.use('/',userRouter)
 app.use('/',connectionRouter)
 app.use('/',postRouter)
+app.use('/',chatRouter)
 app.use('/uploads',express.static("uploads"))
 
 connectDB().then(() => {
