@@ -79,7 +79,7 @@ chatRouter.get('/users/message/list', auth, async (req, res) => {
         const { _id } = req.user
         const userList = await Chats.find({ $or: [{ senderId: _id }, { recieverId: _id }] }).populate("senderId", "firstName lastName _id profile").populate("recieverId", "firstName lastName _id profile")
         if (!userList) {
-            throw new Error("No List found");
+            res.json({ userList: [] })
         }
         const users = userList.map((user) => {
             if (user.senderId._id.toString() == _id.toString()) {
