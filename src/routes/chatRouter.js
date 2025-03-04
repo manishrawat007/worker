@@ -60,7 +60,7 @@ chatRouter.get('/user/message/:recieverId', auth, async (req, res) => {
                     _id:req.user._id,
                     firstName:req.user.firstName,
                     lastName:req.user.lastName,
-                    profile:req.user.lastName
+                    profile:req.user.profile
                 },
                 messages:[]
             }

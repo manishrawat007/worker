@@ -11,14 +11,14 @@ const userSchema = new mongoose.Schema({
     lastName: {
         type: String,
         trim: true,
-        default:''
+        default: ''
     },
     email: {
         type: String,
         required: true,
         trim: true,
         lowercase: true,
-        unique:true,
+        unique: true,
         validate: (value) => {
             const email = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
             if (!email.test(value)) {
@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
-        minlength:8,
+        minlength: 8,
     },
     age: {
         type: Number,
@@ -61,11 +61,23 @@ const userSchema = new mongoose.Schema({
     },
     skills: {
         type: [String],
-        default: ["Tractor Chalana", "Khet mai paani dena", "Bhaise Charana"]
+        default: ["JavaScript", "TypeScript", "React"]
+    },
+    otp: {
+        type: String,
+        default: null
+    },
+    otpExpiresAt: {
+        type: Date,
+        default: null
+    },
+    emailVerified:{
+        type:Boolean,
+        default:false
     }
 })
 
-userSchema.methods.getToken=async function(){
+userSchema.methods.getToken = async function () {
     const token = await jwt.sign({ _id: this._id }, 'Worker')
     return token
 }
