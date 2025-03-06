@@ -14,6 +14,7 @@ const app = express()
 app.use(cors({
     origin: 'https://worker-lytn.onrender.com',
     credentials: true,
+    methods: "GET,POST,PATCH,DELETE",
 }));
 
 app.use(express.json())
