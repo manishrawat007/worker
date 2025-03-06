@@ -97,8 +97,6 @@ connectionRouter.get('/user/followers', auth, async (req, res) => {
         }).populate('fromUserId',['firstName','lastName','profile','gender','age','skills'])
         .populate('toUserId',['firstName','lastName','profile','gender','age','skills'])
 
-        console.log("users---------------",users)
-
         const userData = users.map((user)=>{
             if(user.fromUserId._id.equals(fromuserId)){
                 return user.toUserId
