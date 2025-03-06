@@ -12,10 +12,10 @@ dotenv.config("")
 
 const app = express()
 app.use(cors({
-    // origin: 'https://worker-lytn.onrender.com',
-    origin: "*",
+    origin: 'https://worker-lytn.onrender.com',
     credentials: true,
     methods: "GET,POST,PATCH,DELETE",
+    allowedHeaders: "Content-Type,Authorization",
 }));
 
 app.use(express.json())
