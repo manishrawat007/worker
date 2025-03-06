@@ -11,12 +11,33 @@ const chatRouter = require("./routes/chatRouter")
 dotenv.config("")
 
 const app = express()
-app.use(cors({
-    origin: 'https://worker-lytn.onrender.com',
-    credentials: true,
-    methods: "GET,POST,PATCH,DELETE",
-    allowedHeaders: "Content-Type,Authorization",
-}));
+// app.use(cors({
+//     origin: 'https://worker-lytn.onrender.com',
+//     credentials: true,
+//     methods: "GET,POST,PATCH,DELETE",
+//     allowedHeaders: "Content-Type,Authorization",
+// }));
+
+const allowedOrigins = [
+    "http://localhost:3000", // ✅ Development Frontend
+    "https://worker-lytn.onrender.com" // ✅ Production Frontend (Update this)
+  ];
+  
+  app.use(cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // ✅ Allow cookies/authentication
+    methods: "GET, POST, PATCH, DELETE, OPTIONS",
+    allowedHeaders: "Content-Type, Authorization",
+  }));
+  
+  // ✅ Handle Preflight Requests
+  app.options("*", cors());
 
 app.use(express.json())
 app.use(cookieParser())
