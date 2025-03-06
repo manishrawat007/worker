@@ -12,7 +12,8 @@ dotenv.config("")
 
 const app = express()
 app.use(cors({
-    origin: 'https://worker-lytn.onrender.com',
+    // origin: 'https://worker-lytn.onrender.com',
+    origin: "*",
     credentials: true,
     methods: "GET,POST,PATCH,DELETE",
 }));
