@@ -4,6 +4,7 @@ const User = require('../models/users')
 const { auth } = require('../middleware/adminAuth')
 const bcrypt = require('bcrypt')
 const ConnectionRequest = require('../models/connections')
+const upload = require('../utility/multer')
 
 // get all user api
 userRouter.get('/users', auth, async (req, res) => {
@@ -25,7 +26,7 @@ userRouter.get('/users', auth, async (req, res) => {
             }
         })
 
-        const users = await User.find({ _id: { $nin: ids } }).skip(skip).limit(limit)
+        const users = await User.find({ _id: { $nin: ids },emailVerified:true }).skip(skip).limit(limit)
         const usersData = users.map(({ firstName, lastName, profile, age, gender, skills, _id, bio }) => {
             return { _id, firstName, lastName, profile, age, gender, skills, bio }
         })
@@ -83,4 +84,26 @@ userRouter.post('/profile/changepassword', auth, async (req, res) => {
         res.status(400).send(err.message)
     }
 })
+
+// update user profile and cover image
+userRouter.patch('/profile/update/cover', upload, auth, async (req, res) => {
+
+    try {
+        const { _id } = req.user
+        const profileurl = req.files["profilePic"] && `${req.protocol}://${req.get('host')}/uploads/${req.files["profilePic"][0].filename}`;
+        const coverurl = req.files["coverPic"] && `${req.protocol}://${req.get('host')}/uploads/${req.files["coverPic"][0].filename}`;
+
+        const user = await User.findByIdAndUpdate(_id, { profile: profileurl, cover: coverurl }, { new: true })
+        const { profile, cover } = user
+        res.json({ profile, cover })
+    }
+    catch (err) {
+        res.status(400).send(err.message)
+    }
+
+
+})
+
+
+
 module.exports = userRouter

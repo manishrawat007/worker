@@ -2,9 +2,8 @@ const express = require('express')
 const User = require('../models/users')
 const bcrypt = require('bcrypt')
 const { auth } = require('../middleware/adminAuth')
-const multer = require('multer');
-const path = require('path');
-const sendEmail = require('../utility/sendEmail')
+const sendEmail = require('../utility/sendEmail');
+const upload = require('../utility/multer');
 
 const authRouter = express.Router()
 
@@ -35,49 +34,65 @@ authRouter.post('/login', async (req, res) => {
 })
 
 //Sign Up api
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    },
-});
-
-const upload = multer({
-    storage: storage,
-}).fields([
-    { name: "profilePic", maxCount: 1 },
-    { name: "coverPic", maxCount: 1 }
-]);
-
 const OTP_EXPIRATION = 5 * 60 * 1000;
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
 
 authRouter.post('/signup', upload, async (req, res) => {
     try {
-        const { firstName, lastName, email, password, age, gender, bio, skills } = req.body
-        await User.deleteOne({ email, isVerified: false });
-        const profileurl = req.files["profilePic"] ? `${req.protocol}://${req.get('host')}/uploads/${req.files["profilePic"][0].filename}` : null;
-        const coverurl = req.files["coverPic"] ? `${req.protocol}://${req.get('host')}/uploads/${req.files["coverPic"][0].filename}` : null;
+        const { firstName, lastName, email, password, age, gender, bio, skills } = req.body;
 
-        if (!profileurl && !coverurl && !email && !password && !firstName) {
-            throw new Error("All fields are required");
+        if (!email || !password || !firstName) {
+            throw new Error("Email, password, and first name are required.");
         }
 
-        const passwordHash = await bcrypt.hash(password, 10)
+        const profileurl = req.files?.profilePic?.[0]
+            ? `${req.protocol}://${req.get('host')}/uploads/${req.files["profilePic"][0].filename}`
+            : null;
+
+        const coverurl = req.files?.coverPic?.[0]
+            ? `${req.protocol}://${req.get('host')}/uploads/${req.files["coverPic"][0].filename}`
+            : null;
+
+        const existingUser = await User.findOne({ email });
+
+        // 🔹 If user exists and is verified, return an error
+        if (existingUser?.isVerified) {
+            return res.status(400).json({ message: "User already exists and is verified." });
+        }
+
         const otp = generateOTP();
-        const otpExpiresAt = Date.now() + OTP_EXPIRATION
-        const user = new User({ firstName, lastName, email, password: passwordHash, age, gender, profile: profileurl, cover: coverurl, bio, skills, otp, otpExpiresAt })
-        const newUser = await user.save()
-        await sendEmail(user.email, "Your OTP for Verification", `Your OTP is: ${otp}. It expires in 5 minutes.`)
-        res.status(201).json({ message: `Otp is send on the ${newUser.email}` })
+        const otpExpiresAt = Date.now() + OTP_EXPIRATION;
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        // 🔹 Upsert user (create new or update existing unverified user)
+        const updatedUser = await User.findOneAndUpdate(
+            { email },
+            {
+                firstName,
+                lastName,
+                email,
+                password: passwordHash,
+                age,
+                gender,
+                profile: profileurl || existingUser?.profile || null,
+                cover: coverurl || existingUser?.cover || null,
+                bio,
+                skills,
+                otp,
+                otpExpiresAt,
+                isVerified: false,
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+
+        await sendEmail(updatedUser.email, "Your OTP for Verification", `Your OTP is: ${otp}. It expires in 5 minutes.`);
+
+        res.status(201).json({ message: `OTP sent to ${updatedUser.email}` });
 
     } catch (err) {
-        res.status(400).send(err.message)
+        res.status(400).json({ message: err.message });
     }
-})
+});
 
 // verify otp
 authRouter.post("/verify-otp", async (req, res) => {
