@@ -24,9 +24,12 @@ authRouter.post('/login', async (req, res) => {
         }
         const token = await user.getToken()
         res.cookie('token', token, {
+            // secure: false,
+            // sameSite: 'Lax',
             httpOnly: true,
             secure: true,
-            sameSite: "None", 
+            sameSite: "None",
+            path: "/"
         });
         res.send("Login Successfully")
     } catch (err) {
