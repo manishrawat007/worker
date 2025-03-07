@@ -29,7 +29,8 @@ authRouter.post('/login', async (req, res) => {
             httpOnly: true,
             secure: true,
             sameSite: "None",
-            path: "/"
+            path: "/",
+            maxAge: 24 * 60 * 60 * 1000
         });
         res.send("Login Successfully")
     } catch (err) {
