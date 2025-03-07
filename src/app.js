@@ -13,26 +13,26 @@ dotenv.config("")
 const app = express()
 
 const allowedOrigins = [
-  "http://localhost:3000",
-  "https://worker-olive.vercel.app"
+    "http://localhost:3000",
+    "https://worker-olive.vercel.app"
 ];
 
 app.use(cors({
     origin: allowedOrigins,
-    credentials: true
+    credentials: true,  // ✅ Required for cookies to work
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: ["Content-Type", "Authorization"],
 }));
-
-app.use(cors());
 
 app.use(express.json())
 app.use(cookieParser())
 
-app.use('/',authRouter)
-app.use('/',userRouter)
-app.use('/',connectionRouter)
-app.use('/',postRouter)
-app.use('/',chatRouter)
-app.use('/uploads',express.static("uploads"))
+app.use('/', authRouter)
+app.use('/', userRouter)
+app.use('/', connectionRouter)
+app.use('/', postRouter)
+app.use('/', chatRouter)
+app.use('/uploads', express.static("uploads"))
 
 connectDB().then(() => {
     app.listen(7777, () => {
