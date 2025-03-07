@@ -19,9 +19,7 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: allowedOrigins,
-    credentials: true,
-    methods: "GET,POST,PUT,DELETE",
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: "GET,POST,PUT,PATCH,DELETE"
 }));
 
 app.use(express.json())

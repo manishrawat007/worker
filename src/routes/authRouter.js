@@ -23,16 +23,7 @@ authRouter.post('/login', async (req, res) => {
             throw new Error("Invalid Credentials");
         }
         const token = await user.getToken()
-        res.cookie('token', token, {
-            // secure: false,
-            // sameSite: 'Lax',
-            httpOnly: true,
-            secure: true,
-            sameSite: "None",
-            path: "/",
-            maxAge: 24 * 60 * 60 * 1000
-        });
-        res.send("Login Successfully")
+        res.json({message:"Login Successfully",token})
     } catch (err) {
         res.status(400).send(err.message)
     }
