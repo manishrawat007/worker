@@ -30,9 +30,7 @@ authRouter.post('/login', async (req, res) => {
 })
 
 //Sign Up api
-const OTP_EXPIRATION = 5 * 60 * 1000;
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
-
 authRouter.post('/signup', upload, async (req, res) => {
     try {
         const { firstName, lastName, email, password, age, gender, bio, skills } = req.body;
@@ -52,13 +50,16 @@ authRouter.post('/signup', upload, async (req, res) => {
         const existingUser = await User.findOne({ email });
 
         // 🔹 If user exists and is verified, return an error
-        if (existingUser?.isVerified) {
+        if (existingUser?.emailVerified) {
             return res.status(400).json({ message: "User already exists and is verified." });
         }
 
         const otp = generateOTP();
-        const otpExpiresAt = Date.now() + OTP_EXPIRATION;
+        const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
         const passwordHash = await bcrypt.hash(password, 10);
+
+        console.log("profileurl------------",profileurl)
+        console.log("profileurl------------",coverurl)
 
         // 🔹 Upsert user (create new or update existing unverified user)
         const updatedUser = await User.findOneAndUpdate(
@@ -70,8 +71,8 @@ authRouter.post('/signup', upload, async (req, res) => {
                 password: passwordHash,
                 age,
                 gender,
-                profile: profileurl || existingUser?.profile || null,
-                cover: coverurl || existingUser?.cover || null,
+                profile: profileurl,
+                cover: coverurl,
                 bio,
                 skills,
                 otp,
@@ -97,19 +98,21 @@ authRouter.post("/verify-otp", async (req, res) => {
 
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ error: "User not found" });
-
-        if (user.otp !== otp || Date.now() > user.otpExpiresAt) {
+        console.log("user---------",user)
+        if (user.otp != otp || Date.now() > user.otpExpiresAt) {
             return res.status(400).json({ error: "Invalid or expired OTP" });
         }
+        console.log("user-000--------",user)
 
         user.emailVerified = true;
         user.otp = null;
         user.otpExpiresAt = null;
         await user.save();
+        console.log("user--111-------",user)
 
         res.json({ message: "OTP verified successfully. Account activated." });
     } catch (err) {
-        res.status(500).json({ error: "Server error" });
+        res.status(500).json({ error: "Server error"+err.message });
     }
 });
 

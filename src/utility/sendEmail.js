@@ -6,7 +6,7 @@ const sendEmail = async (to, subject, text) => {
             service: "Gmail",
             auth: {
                 user: "manish@goldeneagle.ai",
-                pass: "jthj biil efyz fizc",
+                pass: "tsqb utqo yzmb spqk",
             },
         });
 
@@ -18,7 +18,6 @@ const sendEmail = async (to, subject, text) => {
         };
 
         await transporter.sendMail(mailOptions);
-        console.log("OTP sent successfully");
     } catch (error) {
         console.error("Failed to send OTP", error);
         res.status(400).send(error.message)
