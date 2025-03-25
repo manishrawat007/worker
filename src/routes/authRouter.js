@@ -58,9 +58,6 @@ authRouter.post('/signup', upload, async (req, res) => {
         const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
         const passwordHash = await bcrypt.hash(password, 10);
 
-        console.log("profileurl------------",profileurl)
-        console.log("profileurl------------",coverurl)
-
         // 🔹 Upsert user (create new or update existing unverified user)
         const updatedUser = await User.findOneAndUpdate(
             { email },
@@ -98,17 +95,14 @@ authRouter.post("/verify-otp", async (req, res) => {
 
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ error: "User not found" });
-        console.log("user---------",user)
         if (user.otp != otp || Date.now() > user.otpExpiresAt) {
             return res.status(400).json({ error: "Invalid or expired OTP" });
         }
-        console.log("user-000--------",user)
 
         user.emailVerified = true;
         user.otp = null;
         user.otpExpiresAt = null;
         await user.save();
-        console.log("user--111-------",user)
 
         res.json({ message: "OTP verified successfully. Account activated." });
     } catch (err) {
