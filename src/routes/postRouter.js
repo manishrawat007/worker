@@ -95,7 +95,7 @@ postRouter.delete('/post/delete/:id', auth, async (req, res) => {
         const remainingImages = posts.profile.filter((image) => image.id != id)
         posts.profile = remainingImages
         await posts.save()
-        res.send("User deleted Successfully")
+        res.send("Posts deleted Successfully")
     } catch (err) {
         res.status(400).send("User is not deleted " + err.message)
     }
@@ -103,12 +103,14 @@ postRouter.delete('/post/delete/:id', auth, async (req, res) => {
 
 // get archieve posts
 postRouter.get('/posts/archieve', auth, async (req, res) => {
+    console.log("archieve------------",req.user._id )
     try {
         const posts = await Posts.findOne({ userId: req.user._id })
         if(!posts){
             throw new Error("No posts is found by the given Id"); 
         }
         const archievePosts = posts.profile.filter((images) => images.isArchieve == true)
+        console.log("archieve------------",archievePosts)
         res.json({ posts: archievePosts })
     } catch (err) {
         res.status(404).json({ message: "No posts found", error: err.message })

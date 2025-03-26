@@ -74,6 +74,7 @@ chatRouter.get('/user/message/:recieverId', auth, async (req, res) => {
     }
 })
 
+// Message List
 chatRouter.get('/users/message/list', auth, async (req, res) => {
     try {
         const { _id } = req.user
