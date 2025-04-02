@@ -2,7 +2,7 @@ const express = require('express')
 const { auth } = require('../middleware/adminAuth');
 const chatRouter = express.Router()
 const Chats = require('../models/chat')
-const User=require('../models/users')
+const User = require('../models/users')
 
 chatRouter.post('/send/message/:recieverId', auth, async (req, res) => {
     try {
@@ -45,27 +45,27 @@ chatRouter.get('/user/message/:recieverId', auth, async (req, res) => {
         }
         const userChats = await Chats.findOne({ $or: [{ senderId, recieverId }, { senderId: recieverId, recieverId: senderId }] }).populate("senderId", "firstName lastName _id profile").populate("recieverId", "firstName lastName _id profile")
         if (!userChats) {
-            const userDetail= await User.findById(recieverId)
-            if(!userDetail){
-                throw new Error("No user found");      
+            const userDetail = await User.findById(recieverId)
+            if (!userDetail) {
+                throw new Error("No user found");
             }
-            const userChats={
-                senderId:{
-                    _id:userDetail._id,
-                    firstName:userDetail.firstName,
-                    lastName:userDetail.lastName,
-                    profile:userDetail.profile
+            const userChats = {
+                senderId: {
+                    _id: userDetail._id,
+                    firstName: userDetail.firstName,
+                    lastName: userDetail.lastName,
+                    profile: userDetail.profile
                 },
-                recieverId:{
-                    _id:req.user._id,
-                    firstName:req.user.firstName,
-                    lastName:req.user.lastName,
-                    profile:req.user.profile
+                recieverId: {
+                    _id: req.user._id,
+                    firstName: req.user.firstName,
+                    lastName: req.user.lastName,
+                    profile: req.user.profile
                 },
-                messages:[]
+                messages: []
             }
-            
-            return res.json({data:userChats})
+
+            return res.json({ data: userChats })
         }
         res.json({ data: userChats })
     } catch (err) {
@@ -75,9 +75,11 @@ chatRouter.get('/user/message/:recieverId', auth, async (req, res) => {
 })
 
 // Message List
-chatRouter.get('/users/message/list', auth, async (req, res) => {
+chatRouter.get('/users/message/list/:username?', auth, async (req, res) => {
     try {
         const { _id } = req.user
+        const {username=""}= req.params
+        console.log("username---------",username)
         const userList = await Chats.find({ $or: [{ senderId: _id }, { recieverId: _id }] }).populate("senderId", "firstName lastName _id profile").populate("recieverId", "firstName lastName _id profile")
         if (!userList) {
             res.json({ userList: [] })
@@ -89,11 +91,18 @@ chatRouter.get('/users/message/list', auth, async (req, res) => {
                 return user.senderId
             }
         })
+        if (username.trim().length>0) {
+            const filtersUsers = users.filter((user) => {
+                const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+                return fullName.includes(username.toLowerCase());
+            });
+            console.log(filtersUsers)
+            return res.json({ userList: filtersUsers })
+        }
         res.json({ userList: users })
     } catch (err) {
         res.status(400).send(err.message)
     }
 })
-
 
 module.exports = chatRouter

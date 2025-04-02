@@ -70,11 +70,11 @@ postRouter.post('/post/upload', upload.single('image'), auth, async (req, res) =
 postRouter.get('/posts/:id', auth, async (req, res) => {
     const { id } = req.params
     try {
-        const posts = await Posts.findOne({ userId: id }).populate('userId', ['firstName', 'lastName', 'profile', 'gender', 'age', 'skills'])
+        const posts = await Posts.findOne({ userId: id }).populate('userId', ['firstName', 'lastName', 'profile', 'gender', 'age', 'skills','cover'])
         if (!posts || !posts.profile) {
             const user = await User.findOne({_id:id})
-            const { firstName, lastName, email, age, gender, profile, bio, skills } = user
-            return res.json({ user: { firstName, lastName, email, age, gender, profile, bio, skills }, profile: [] })
+            const { firstName, lastName, email, age, gender, profile, bio, skills,cover } = user
+            return res.json({ user: { firstName, lastName, email, age, gender, profile, bio, skills,cover }, profile: [] })
         }
         const filterposts =posts.profile.filter((post) => post.isArchieve==false)
 
@@ -102,15 +102,13 @@ postRouter.delete('/post/delete/:id', auth, async (req, res) => {
 })
 
 // get archieve posts
-postRouter.get('/posts/archieve', auth, async (req, res) => {
-    console.log("archieve------------",req.user._id )
+postRouter.get('/archieve/posts', auth, async (req, res) => {
     try {
         const posts = await Posts.findOne({ userId: req.user._id })
         if(!posts){
-            throw new Error("No posts is found by the given Id"); 
+            return res.json({posts:[]}) 
         }
         const archievePosts = posts.profile.filter((images) => images.isArchieve == true)
-        console.log("archieve------------",archievePosts)
         res.json({ posts: archievePosts })
     } catch (err) {
         res.status(404).json({ message: "No posts found", error: err.message })

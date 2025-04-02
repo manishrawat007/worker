@@ -74,6 +74,10 @@ const userSchema = new mongoose.Schema({
     emailVerified:{
         type:Boolean,
         default:false
+    },
+    passwordVerified:{
+        type:Boolean,
+        default:false
     }
 })
 
