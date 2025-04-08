@@ -33,7 +33,7 @@ userRouter.get('/users', auth, async (req, res) => {
 
         res.json({ data: usersData })
     } catch (err) {
-        res.status(400).send("users not found--------" + err.message)
+        res.status(400).send("users not found" + err.message)
     }
 })
 
@@ -90,9 +90,13 @@ userRouter.patch('/profile/update/cover', upload, auth, async (req, res) => {
 
     try {
         const { _id } = req.user
-        const profileurl = req.files["profilePic"] && `${req.protocol}://${req.get('host')}/uploads/${req.files["profilePic"][0].filename}`;
-        const coverurl = req.files["coverPic"] && `${req.protocol}://${req.get('host')}/uploads/${req.files["coverPic"][0].filename}`;
+        const profileurl = req.body["profilePic"] 
+        const coverurl = req.body["coverPic"]
 
+        if(!profileurl && !coverurl){
+            return res.status(400).send("Url is not valid.")
+            
+        }
         const user = await User.findByIdAndUpdate(_id, { profile: profileurl, cover: coverurl }, { new: true })
         const { profile, cover } = user
         res.json({ profile, cover })
@@ -100,8 +104,6 @@ userRouter.patch('/profile/update/cover', upload, auth, async (req, res) => {
     catch (err) {
         res.status(400).send(err.message)
     }
-
-
 })
 
 

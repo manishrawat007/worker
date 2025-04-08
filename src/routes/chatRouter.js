@@ -79,7 +79,6 @@ chatRouter.get('/users/message/list/:username?', auth, async (req, res) => {
     try {
         const { _id } = req.user
         const {username=""}= req.params
-        console.log("username---------",username)
         const userList = await Chats.find({ $or: [{ senderId: _id }, { recieverId: _id }] }).populate("senderId", "firstName lastName _id profile").populate("recieverId", "firstName lastName _id profile")
         if (!userList) {
             res.json({ userList: [] })

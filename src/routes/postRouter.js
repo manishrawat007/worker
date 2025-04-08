@@ -19,15 +19,13 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-postRouter.post('/post/upload', upload.single('image'), auth, async (req, res) => {
+postRouter.post('/post/upload', auth, async (req, res) => {
+    const imageUrl= req.body.image
+    const message = req.body.message
 
-    if (!req.file) {
-        return res.status(400).send('No file uploaded');
+    if (!imageUrl) {
+        return res.status(400).send('Url is not valid');
     }
-    const { message } = req.body
-    const imageUrl = req.file
-        ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
-        : undefined;
     try {
         const userPosts = await Posts.findOne({ userId: req.user._id })
         if (userPosts) {
