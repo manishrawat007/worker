@@ -9,6 +9,8 @@ const postRouter = require("./routes/postRouter")
 const dotenv = require('dotenv')
 const chatRouter = require("./routes/chatRouter")
 dotenv.config("")
+const http= require('http')
+const initialiseSocket = require("./utility/socket")
 
 const app = express()
 
@@ -31,9 +33,12 @@ app.use('/', connectionRouter)
 app.use('/', postRouter)
 app.use('/', chatRouter)
 app.use('/uploads', express.static("uploads"))
+const server = http.createServer(app)
+
+initialiseSocket(server)
 
 connectDB().then(() => {
-    app.listen(7777, () => {
+    server.listen(7777, () => {
         console.log("server is running")
     })
 }).catch((err) => {

@@ -3,7 +3,6 @@ const User = require('../models/users')
 const bcrypt = require('bcrypt')
 const { auth } = require('../middleware/adminAuth')
 const sendEmail = require('../utility/sendEmail');
-const upload = require('../utility/multer');
 
 const authRouter = express.Router()
 
@@ -32,7 +31,7 @@ authRouter.post('/login', async (req, res) => {
 
 //Sign Up api
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
-authRouter.post('/signup', upload, async (req, res) => {
+authRouter.post('/signup', async (req, res) => {
     try {
         const { firstName, lastName, email, password, age, gender, bio, skills } = req.body;
 
@@ -40,26 +39,14 @@ authRouter.post('/signup', upload, async (req, res) => {
             throw new Error("Email, password, and first name are required.");
         }
 
-        const profileurl = req.files?.profilePic?.[0]
-            ? `${req.protocol}://${req.get('host')}/uploads/${req.files["profilePic"][0].filename}`
-            : null;
-
-        const coverurl = req.files?.coverPic?.[0]
-            ? `${req.protocol}://${req.get('host')}/uploads/${req.files["coverPic"][0].filename}`
-            : null;
-
         const existingUser = await User.findOne({ email });
-
-        // 🔹 If user exists and is verified, return an error
         if (existingUser?.emailVerified) {
-            return res.status(400).json({ message: "User already exists and is verified." });
+            return res.status(400).json({ message: "User already exists." });
         }
 
         const otp = generateOTP();
         const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
         const passwordHash = await bcrypt.hash(password, 10);
-
-        // 🔹 Upsert user (create new or update existing unverified user)
         const updatedUser = await User.findOneAndUpdate(
             { email },
             {
@@ -69,8 +56,6 @@ authRouter.post('/signup', upload, async (req, res) => {
                 password: passwordHash,
                 age,
                 gender,
-                profile: profileurl,
-                cover: coverurl,
                 bio,
                 skills,
                 otp,
@@ -83,7 +68,6 @@ authRouter.post('/signup', upload, async (req, res) => {
         await sendEmail(updatedUser.email, "Your OTP for Verification", `Your OTP is: ${otp}. It expires in 5 minutes.`);
 
         res.status(201).json({ message: `OTP sent to ${updatedUser.email}` });
-
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
